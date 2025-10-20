@@ -57,7 +57,8 @@ class beat_block_hammer(Base_Task):
         # Get the position of the block's functional point
         block_pose = self.block.get_functional_point(0, "pose").p
         # Determine which arm to use based on block position (left if block is on left side, else right)
-        arm_tag = ArmTag("left" if block_pose[0] < 0 else "right")
+        # 演示环节中就注释掉左手的运动
+        arm_tag = "right" # ArmTag("left" if block_pose[0] < 0 else "right")
 
         # Grasp the hammer with the selected arm
         self.move(self.grasp_actor(self.hammer, arm_tag=arm_tag, pre_grasp_dis=0.12, grasp_dis=0.01))

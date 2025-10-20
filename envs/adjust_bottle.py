@@ -35,7 +35,7 @@ class adjust_bottle(Base_Task):
 
     def play_once(self):
         # Determine which arm to use based on qpose_tag (1 for right, else left)
-        arm_tag = ArmTag("right" if self.qpose_tag == 1 else "left")
+        arm_tag = "right" #ArmTag("right" if self.qpose_tag == 1 else "left")
         # Select target pose based on qpose_tag (right_target_pose or left_target_pose)
         target_pose = (self.right_target_pose if self.qpose_tag == 1 else self.left_target_pose)
 

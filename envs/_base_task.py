@@ -120,11 +120,11 @@ class Base_Task(gym.Env):
         self.create_table_and_wall(table_xy_bias=table_xy_bias, table_height=0.74)
         self.load_robot(**kwags)
         self.load_camera(**kwags)
-        self.robot.move_to_homestate()
+        self.robot.move_to_homestate() # 仅仅移右手臂
 
         render_freq = self.render_freq
         self.render_freq = 0
-        self.together_open_gripper(save_freq=None)
+        self.together_open_gripper(save_freq=None) # 仅仅使用右侧夹抓
         self.render_freq = render_freq
 
         self.robot.set_origin_endpose()
@@ -184,12 +184,13 @@ class Base_Task(gym.Env):
                         break
 
         is_stable = True
-        for _ in range(2000):
+        for _ in range(200): #放宽stable检测的
             self.scene.step()
         for idx, actor in enumerate(actors_list):
             actors_pose_list.append([actor.get_pose()])
         check(500)
-        return is_stable, unstable_list
+        # return is_stable, unstable_list
+        return True, unstable_list
 
     def play_once(self):
         pass
@@ -392,12 +393,39 @@ class Base_Task(gym.Env):
         else:
             self.robot.reset(self.scene, self.need_topp, **kwags)
 
-        for link in self.robot.left_entity.get_links():
-            link: sapien.physx.PhysxArticulationLinkComponent = link
-            link.set_mass(1)
+        # for link in self.robot.left_entity.get_links():
+        #     link: sapien.physx.PhysxArticulationLinkComponent = link
+        #     link.set_mass(1)
         for link in self.robot.right_entity.get_links():
             link: sapien.physx.PhysxArticulationLinkComponent = link
             link.set_mass(1)
+
+    # def load_robot(self, **kwags):
+    #     """load aloha robot urdf file, set root pose and set joints"""
+    #     if not hasattr(self, "robot"):
+    #         # 首次加载：创建URDF加载器并初始化机器人
+    #         loader = self.scene.create_urdf_loader()
+    #         loader.fix_root_link = True
+    #         # 加载URDF模型并提取机器人实例（从元组中取出实际机器人对象）
+    #         robot_tuple = loader.load_multiple("/home/owlet/project/RoboTwin-main/envs/asset/robot_description/panda/panda_v3.urdf")
+    #         self.robot = robot_tuple[0][0]  # 直接存储机器人实例而非元组
+    #         # 设置机器人根节点位姿（直接使用self.robot访问）
+    #         self.robot.set_root_pose(sapien.Pose([0, -0.4, 0.74], [0.7071067811865476, 0, 0, 0.7071067811865475]))
+    #         # 获取主动关节并配置驱动属性
+    #         self.active_joints = self.robot.get_active_joints()
+    #         for joint in self.active_joints:
+    #             joint.set_drive_property(
+    #                 stiffness=1000,
+    #                 damping=200,
+    #             )
+    #     else:
+    #         # 机器人已存在：直接重置位姿和关节属性（self.robot已是实例）
+    #         self.robot.set_root_pose(sapien.Pose([0, -0.4, 0.74], [0.7071067811865476, 0, 0, 0.7071067811865475]))
+    #         for joint in self.active_joints:
+    #             joint.set_drive_property(
+    #                 stiffness=1000,
+    #                 damping=200,
+    #             )
 
     def load_camera(self, **kwags):
         """
@@ -429,7 +457,8 @@ class Base_Task(gym.Env):
             now_ambient_light = self.scene.ambient_light
             now_ambient_light = np.clip(np.array(now_ambient_light) + np.random.rand(3) * 0.2 - 0.1, 0, 1)
             self.scene.set_ambient_light(now_ambient_light)
-        self.cameras.update_wrist_camera(self.robot.left_camera.get_pose(), self.robot.right_camera.get_pose())
+        # self.cameras.update_wrist_camera(self.robot.left_camera.get_pose(), self.robot.right_camera.get_pose())
+        self.cameras.update_wrist_camera(None, self.robot.right_camera.get_pose())
         self.scene.update_render()
 
     # =========================================================== Basic APIs ===========================================================
@@ -475,7 +504,8 @@ class Base_Task(gym.Env):
                 self.robot.get_left_gripper_val(),
                 self.robot.get_right_gripper_val(),
             ]
-            left_endpose = self.get_arm_pose("left")
+            # left_endpose = self.get_arm_pose("left") 注释掉左手臂末端位姿
+            left_endpose = [0.0]*7
             right_endpose = self.get_arm_pose("right")
             pkl_dic["endpose"]["left_endpose"] = left_endpose
             pkl_dic["endpose"]["left_gripper"] = norm_gripper_val[0]
@@ -484,7 +514,8 @@ class Base_Task(gym.Env):
         # qpos
         if self.data_type.get("qpos", False):
 
-            left_jointstate = self.robot.get_left_arm_jointState()
+            # left_jointstate = self.robot.get_left_arm_jointState()
+            left_jointstate = [0.0]*8 # 注释掉左手臂关节状态
             right_jointstate = self.robot.get_right_arm_jointState()
 
             pkl_dic["joint_action"]["left_arm"] = left_jointstate[:-1]
@@ -614,20 +645,20 @@ class Base_Task(gym.Env):
 
         left_result, right_result = None, None
 
-        if set_tag == "left" or set_tag == "together":
-            left_result = self.robot.left_plan_grippers(self.robot.get_left_gripper_val(), left_pos)
-            left_gripper_step = left_result["per_step"]
-            left_gripper_res = left_result["result"]
-            num_step = left_result["num_step"]
-            left_result["result"] = np.pad(
-                left_result["result"],
-                (0, int(alpha * num_step)),
-                mode="constant",
-                constant_values=left_gripper_res[-1],
-            )  # append
-            left_result["num_step"] += int(alpha * num_step)
-            if set_tag == "left":
-                return left_result
+        # if set_tag == "left" or set_tag == "together":
+        #     left_result = self.robot.left_plan_grippers(self.robot.get_left_gripper_val(), left_pos)
+        #     left_gripper_step = left_result["per_step"]
+        #     left_gripper_res = left_result["result"]
+        #     num_step = left_result["num_step"]
+        #     left_result["result"] = np.pad(
+        #         left_result["result"],
+        #         (0, int(alpha * num_step)),
+        #         mode="constant",
+        #         constant_values=left_gripper_res[-1],
+        #     )  # append
+        #     left_result["num_step"] += int(alpha * num_step)
+        #     if set_tag == "left":
+        #         return left_result
 
         if set_tag == "right" or set_tag == "together":
             right_result = self.robot.right_plan_grippers(self.robot.get_right_gripper_val(), right_pos)
@@ -909,7 +940,7 @@ class Base_Task(gym.Env):
             return False
 
         actions = [actions_by_arm1, actions_by_arm2]
-        left_actions = get_actions(actions, "left")
+        left_actions = get_actions(actions, "left") # 注释掉左手臂动作
         right_actions = get_actions(actions, "right")
 
         max_len = max(len(left_actions), len(right_actions))

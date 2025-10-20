@@ -105,7 +105,8 @@ class Robot:
             loader: sapien.URDFLoader = scene.create_urdf_loader()
             loader.fix_root_link = True
             self._entity = loader.load(self.left_urdf_path)
-            self.left_entity = self._entity
+            #self.left_entity = self._entity
+            self.left_entity = None # 注释掉左手臂
             self.right_entity = self._entity
         else:
             arms_dis = kwargs["embodiment_dis"]
@@ -115,10 +116,10 @@ class Robot:
             left_loader.fix_root_link = True
             right_loader: sapien.URDFLoader = scene.create_urdf_loader()
             right_loader.fix_root_link = True
-            self.left_entity = left_loader.load(self.left_urdf_path)
+            #self.left_entity = left_loader.load(self.left_urdf_path)
             self.right_entity = right_loader.load(self.right_urdf_path)
 
-        self.left_entity.set_root_pose(self.left_entity_origion_pose)
+        # self.left_entity.set_root_pose(self.left_entity_origion_pose)
         self.right_entity.set_root_pose(self.right_entity_origion_pose)
 
     def reset(self, scene, need_topp=False, **kwargs):
@@ -132,7 +133,8 @@ class Robot:
                 self.right_conn.send({"cmd": "reset"})
                 _ = self.right_conn.recv()
         else:
-            if not isinstance(self.left_planner, CuroboPlanner) or not isinstance(self.right_planner, CuroboPlanner):
+            # if not isinstance(self.left_planner, CuroboPlanner) or not isinstance(self.right_planner, CuroboPlanner):
+            if not isinstance(self.right_planner, CuroboPlanner):
                 self.set_planner(scene=scene)
 
         self.init_joints()
@@ -164,19 +166,21 @@ class Robot:
         return ori_vec[:3] + (ori_vec[-3:] @ np.linalg.inv(inv_delta_matrix)).tolist()
 
     def init_joints(self):
-        if self.left_entity is None or self.right_entity is None:
-            raise ValueError("Robote entity is None")
+        # 仅仅移右手臂
+        # if self.left_entity is None or self.right_entity is None:
+        #     raise ValueError("Robote entity is None")
 
-        self.left_active_joints = self.left_entity.get_active_joints()
+        # self.left_active_joints = self.left_entity.get_active_joints()
         self.right_active_joints = self.right_entity.get_active_joints()
 
-        self.left_ee = self.left_entity.find_joint_by_name(self.left_ee_name)
+        # self.left_ee = self.left_entity.find_joint_by_name(self.left_ee_name)
+        self.left_ee = None # 注释掉左手臂末端执行器
         self.right_ee = self.right_entity.find_joint_by_name(self.right_ee_name)
 
-        self.left_gripper_val = 0.0
+        # self.left_gripper_val = 0.0
         self.right_gripper_val = 0.0
 
-        self.left_arm_joints = [self.left_entity.find_joint_by_name(i) for i in self.left_arm_joints_name]
+        # self.left_arm_joints = [self.left_entity.find_joint_by_name(i) for i in self.left_arm_joints_name]
         self.right_arm_joints = [self.right_entity.find_joint_by_name(i) for i in self.right_arm_joints_name]
 
         def get_gripper_joints(find, gripper_name: str):
@@ -185,22 +189,23 @@ class Robot:
                 gripper.append((find(g[0]), g[1], g[2]))
             return gripper
 
-        self.left_gripper = get_gripper_joints(self.left_entity.find_joint_by_name, self.left_gripper_name)
+        # self.left_gripper = get_gripper_joints(self.left_entity.find_joint_by_name, self.left_gripper_name)
         self.right_gripper = get_gripper_joints(self.right_entity.find_joint_by_name, self.right_gripper_name)
         self.gripper_name = deepcopy(self.left_fix_gripper_name) + deepcopy(self.right_fix_gripper_name)
 
-        for g in self.left_gripper:
-            self.gripper_name.append(g[0].child_link.get_name())
+        # for g in self.left_gripper:
+        #     self.gripper_name.append(g[0].child_link.get_name())
         for g in self.right_gripper:
             self.gripper_name.append(g[0].child_link.get_name())
 
         # camera link id
-        self.left_camera = self.left_entity.find_link_by_name("left_camera")
-        if self.left_camera is None:
-            self.left_camera = self.left_entity.find_link_by_name("camera")
-            if self.left_camera is None:
-                print("No left camera link")
-                self.left_camera = self.left_entity.get_links()[0]
+        self.left_camera = None #尝试注释掉左手臂摄像头
+        # self.left_camera = self.left_entity.find_link_by_name("left_camera")
+        # if self.left_camera is None:
+        #     self.left_camera = self.left_entity.find_link_by_name("camera")
+        #     if self.left_camera is None:
+        #         print("No left camera link")
+        #         self.left_camera = self.left_entity.get_links()[0]
 
         self.right_camera = self.right_entity.find_link_by_name("right_camera")
         if self.right_camera is None:
@@ -209,9 +214,9 @@ class Robot:
                 print("No right camera link")
                 self.right_camera = self.right_entity.get_links()[0]
 
-        for i, joint in enumerate(self.left_active_joints):
-            if joint not in self.left_gripper:
-                joint.set_drive_property(stiffness=self.left_joint_stiffness, damping=self.left_joint_damping)
+        # for i, joint in enumerate(self.left_active_joints):
+        #     if joint not in self.left_gripper:
+        #         joint.set_drive_property(stiffness=self.left_joint_stiffness, damping=self.left_joint_damping)
         for i, joint in enumerate(self.right_active_joints):
             if joint not in self.right_gripper:
                 joint.set_drive_property(
@@ -219,8 +224,8 @@ class Robot:
                     damping=self.right_joint_damping,
                 )
 
-        for joint in self.left_gripper:
-            joint[0].set_drive_property(stiffness=self.left_gripper_stiffness, damping=self.left_gripper_damping)
+        # for joint in self.left_gripper:
+        #     joint[0].set_drive_property(stiffness=self.left_gripper_stiffness, damping=self.left_gripper_damping)
         for joint in self.right_gripper:
             joint[0].set_drive_property(
                 stiffness=self.right_gripper_stiffness,
@@ -228,14 +233,14 @@ class Robot:
             )
 
     def move_to_homestate(self):
-        for i, joint in enumerate(self.left_arm_joints):
-            joint.set_drive_target(self.left_homestate[i])
+        # for i, joint in enumerate(self.left_arm_joints):
+        #     joint.set_drive_target(self.left_homestate[i])
 
         for i, joint in enumerate(self.right_arm_joints):
             joint.set_drive_target(self.right_homestate[i])
 
     def set_origin_endpose(self):
-        self.left_original_pose = self.get_left_ee_pose()
+        # self.left_original_pose = self.get_left_ee_pose()
         self.right_original_pose = self.get_right_ee_pose()
 
     def print_info(self):
@@ -243,32 +248,36 @@ class Robot:
             "active joints: ",
             [joint.get_name() for joint in self.left_active_joints + self.right_active_joints],
         )
+        # print(
+        #     "all links: ",
+        #     [link.get_name() for link in self.left_entity.get_links() + self.right_entity.get_links()],
+        # )
         print(
             "all links: ",
-            [link.get_name() for link in self.left_entity.get_links() + self.right_entity.get_links()],
+            [link.get_name() for link in self.right_entity.get_links()],
         )
-        print("left arm joints: ", [joint.get_name() for joint in self.left_arm_joints])
+        #print("left arm joints: ", [joint.get_name() for joint in self.left_arm_joints])
         print("right arm joints: ", [joint.get_name() for joint in self.right_arm_joints])
-        print("left gripper: ", [joint[0].get_name() for joint in self.left_gripper])
+        #print("left gripper: ", [joint[0].get_name() for joint in self.left_gripper])
         print("right gripper: ", [joint[0].get_name() for joint in self.right_gripper])
-        print("left ee: ", self.left_ee.get_name())
+        #print("left ee: ", self.left_ee.get_name())
         print("right ee: ", self.right_ee.get_name())
 
     def set_planner(self, scene=None):
         abs_left_curobo_yml_path = os.path.join(CONFIGS.ROOT_PATH, self.left_curobo_yml_path)
         abs_right_curobo_yml_path = os.path.join(CONFIGS.ROOT_PATH, self.right_curobo_yml_path)
 
-        self.communication_flag = (abs_left_curobo_yml_path != abs_right_curobo_yml_path)
+        self.communication_flag = False #(abs_left_curobo_yml_path != abs_right_curobo_yml_path)
 
         if self.is_dual_arm:
             abs_left_curobo_yml_path = abs_left_curobo_yml_path.replace("curobo.yml", "curobo_left.yml")
             abs_right_curobo_yml_path = abs_right_curobo_yml_path.replace("curobo.yml", "curobo_right.yml")
 
         if not self.communication_flag:
-            self.left_planner = CuroboPlanner(self.left_entity_origion_pose,
-                                              self.left_arm_joints_name,
-                                              [joint.get_name() for joint in self.left_entity.get_active_joints()],
-                                              yml_path=abs_left_curobo_yml_path)
+            # self.left_planner = CuroboPlanner(self.left_entity_origion_pose,
+            #                                   self.left_arm_joints_name,
+            #                                   [joint.get_name() for joint in self.left_entity.get_active_joints()],
+            #                                   yml_path=abs_left_curobo_yml_path)
             self.right_planner = CuroboPlanner(self.right_entity_origion_pose,
                                                self.right_arm_joints_name,
                                                [joint.get_name() for joint in self.right_entity.get_active_joints()],
@@ -493,9 +502,9 @@ class Robot:
     # The data of gripper has been normalized
     def get_left_arm_jointState(self) -> list:
         jointState_list = []
-        for joint in self.left_arm_joints:
-            jointState_list.append(joint.get_drive_target()[0].astype(float))
-        jointState_list.append(self.get_left_gripper_val())
+        # for joint in self.left_arm_joints:
+        #     jointState_list.append(joint.get_drive_target()[0].astype(float))
+        # jointState_list.append(self.get_left_gripper_val())
         return jointState_list
 
     def get_right_arm_jointState(self) -> list:
@@ -507,11 +516,11 @@ class Robot:
 
     def get_left_arm_real_jointState(self) -> list:
         jointState_list = []
-        left_joints_qpos = self.left_entity.get_qpos()
-        left_active_joints = self.left_entity.get_active_joints()
-        for joint in self.left_arm_joints:
-            jointState_list.append(left_joints_qpos[left_active_joints.index(joint)])
-        jointState_list.append(self.get_left_gripper_val())
+        # left_joints_qpos = self.left_entity.get_qpos()
+        # left_active_joints = self.left_entity.get_active_joints()
+        # for joint in self.left_arm_joints:
+        #     jointState_list.append(left_joints_qpos[left_active_joints.index(joint)])
+        # jointState_list.append(self.get_left_gripper_val())
         return jointState_list
 
     def get_right_arm_real_jointState(self) -> list:
@@ -524,11 +533,12 @@ class Robot:
         return jointState_list
 
     def get_left_gripper_val(self):
-        if None in self.left_gripper:
-            print("No gripper")
-            return 0
-        return self.left_gripper_val
-
+        # if None in self.left_gripper:
+        #     print("No gripper")
+        #     return 0
+        # return self.left_gripper_val
+        return 1
+    
     def get_right_gripper_val(self):
         if None in self.right_gripper:
             print("No gripper")
@@ -607,7 +617,7 @@ class Robot:
         entity.set_qf(qf)
 
     def set_arm_joints(self, target_position, target_velocity, arm_tag):
-        self._entity_qf(self.left_entity)
+        # self._entity_qf(self.left_entity)
         self._entity_qf(self.right_entity)
 
         joint_lst = self.left_arm_joints if arm_tag == "left" else self.right_arm_joints
@@ -617,16 +627,17 @@ class Robot:
             joint.set_drive_velocity_target(target_velocity[j])
 
     def get_normal_real_gripper_val(self):
-        normal_left_gripper_val = (self.left_gripper[0][0].get_drive_target()[0] - self.left_gripper_scale[0]) / (
-            self.left_gripper_scale[1] - self.left_gripper_scale[0])
+        # normal_left_gripper_val = (self.left_gripper[0][0].get_drive_target()[0] - self.left_gripper_scale[0]) / (
+        #     self.left_gripper_scale[1] - self.left_gripper_scale[0])
         normal_right_gripper_val = (self.right_gripper[0][0].get_drive_target()[0] - self.right_gripper_scale[0]) / (
             self.right_gripper_scale[1] - self.right_gripper_scale[0])
-        normal_left_gripper_val = np.clip(normal_left_gripper_val, 0, 1)
+        normal_left_gripper_val = 1
+        # normal_left_gripper_val = np.clip(normal_left_gripper_val, 0, 1)
         normal_right_gripper_val = np.clip(normal_right_gripper_val, 0, 1)
         return [normal_left_gripper_val, normal_right_gripper_val]
 
     def set_gripper(self, gripper_val, arm_tag, gripper_eps=0.1):  # gripper_val in [0,1]
-        self._entity_qf(self.left_entity)
+        # self._entity_qf(self.left_entity)  # 仅仅移右手臂
         self._entity_qf(self.right_entity)
         gripper_val = np.clip(gripper_val, 0, 1)
 

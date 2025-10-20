@@ -289,7 +289,7 @@ class Camera:
         (rendering must be updated even when disabled, otherwise data cannot be collected).
         """
         if self.collect_wrist_camera:
-            self.left_camera.entity.set_pose(left_pose)
+            # self.left_camera.entity.set_pose(left_pose) # 注释掉左手臂摄像头位置更新
             self.right_camera.entity.set_pose(right_pose)
 
     def get_config(self) -> dict:
