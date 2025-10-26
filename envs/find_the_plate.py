@@ -82,27 +82,18 @@ class find_the_plate(Base_Task):
         self.move(
             self.move_by_displacement(
                 arm_tag=right_arm,
-                z=0.3,
+                z=0.15,
                 move_axis='world'
             )
         )
-        
-        # Generate placement position for mug away from plate
-        mug_target_position = [
-            plate_position[0] + placement_offset,
-            plate_position[1] + placement_offset,
-            plate_position[2]  # Same height as plate
-        ]
-        
-        # Create target pose for mug placement
-        mug_target_pose = [mug_target_position[0], mug_target_position[1], mug_target_position[2], 0.707109, 0.707104, 0, 0]
         
         # Place mug away from plate
         self.move(
             self.place_actor(
                 actor=self.mug,
                 arm_tag=right_arm,
-                target_pose=mug_target_pose,
+                target_pose=[plate_position[0] + placement_offset, plate_position[1] + placement_offset, plate_position[2]] \
+                    + [0.707109, 0.707104, 0, 0],
                 functional_point_id=0,  # Use bottom functional point for placement
                 pre_dis=0.1,
                 dis=0.02,
@@ -136,28 +127,20 @@ class find_the_plate(Base_Task):
         self.move(
             self.move_by_displacement(
                 arm_tag=right_arm,
-                z=0.2,
+                z=0.15,
                 move_axis='world'
             )
         )
-        
-        # Generate placement position for hamburg away from plate (different location than mug)
-        hamburg_target_position = [
-            plate_position[0] - placement_offset,
-            plate_position[1] + placement_offset,
-            plate_position[2]  # Same height as plate
-        ]
-        
-        # Create target pose for hamburg placement
-        hamburg_target_pose = [hamburg_target_position[0], hamburg_target_position[1], hamburg_target_position[2], 1.0, 0.0, 0.0, 0.0]
         
         # Place hamburg away from plate
         self.move(
             self.place_actor(
                 actor=self.hamburg,
                 arm_tag=right_arm,
-                target_pose=hamburg_target_pose,
+                target_pose=[plate_position[0] - placement_offset, plate_position[1] + placement_offset, plate_position[2]] +\
+                    [0.707109, 0.707104, 0, 0],
                 pre_dis=0.1,
+                functional_point_id=0,  # Use bottom functional point for placement
                 dis=0.02,
                 is_open=True,
                 constrain="free",
@@ -165,8 +148,6 @@ class find_the_plate(Base_Task):
             )
         )
         
-        # Observation after placing hamburg
-        self.save_camera_images(task_name="find_the_plate", step_name="step5_hamburg_placed", generate_num_id="generate_num_3")
         
         # Lift gripper after placing hamburg
         self.move(
