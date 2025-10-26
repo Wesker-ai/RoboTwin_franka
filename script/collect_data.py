@@ -128,6 +128,9 @@ def run(TASK_ENV, args):
             try:
                 TASK_ENV.setup_demo(now_ep_num=suc_num, seed=epid, **args)
                 TASK_ENV.play_once()
+                while True:
+                    if TASK_ENV.is_finshed_flag:
+                        break
 
                 if TASK_ENV.plan_success and TASK_ENV.check_success():
                     print(f"simulate data episode {suc_num} success! (seed = {epid})")
@@ -240,11 +243,7 @@ if __name__ == "__main__":
     import torch.multiprocessing as mp
     mp.set_start_method("spawn", force=True)
 
-    parser = ArgumentParser()
-    parser.add_argument("task_name", type=str)
-    parser.add_argument("task_config", type=str)
-    parser = parser.parse_args()
-    task_name = parser.task_name
-    task_config = parser.task_config
+    task_name = "find_the_plate"
+    task_config = "find_the_plate"
 
     main(task_name=task_name, task_config=task_config)

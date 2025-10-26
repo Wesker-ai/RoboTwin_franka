@@ -245,6 +245,7 @@ def rand_create_cluttered_actor(
         if obj is None:
             return False, None
         else:
+            obj.set_mass(0.01)
             return True, obj
     else:
         obj = create_actor(
@@ -259,6 +260,7 @@ def rand_create_cluttered_actor(
         if obj is None:
             return False, None
         else:
+            obj.set_mass(0.01)
             return True, obj
 
 

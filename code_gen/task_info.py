@@ -29,10 +29,43 @@ TASK_NAME = {
 }
 """
 
+
 ################## Known Tasks ##################
 # These tasks are used to debug and iterate on prompt design.
 # Prompt instructions have been specifically adjusted for them.
 
+
+FIND_THE_PLATE = {
+    "task_name": "find_the_plate",
+    "task_description": "Remove the objects over the plate and expose the plate to the air, and you should only use right arm to accomplish the task.\
+                        The plate is randomly placed on the table, and there may be one or more objects randomly placed on the plate, which may obstruct access to the plate.\
+                        You should place the plate where no object occupies, which means you might use a loop to generate a random place and check whether it is occupied, and \
+                        decide to place the mug and hanburg at the genertated place or not.\
+                        You should move the mug first.\
+                        Note: You need to make sure that there is no object on the plate at the end of the task.",
+    "current_code":'''
+        class find_the_plate(Base_Task):
+            def play_once(self):
+                pass
+    ''',
+    "actor_list": {
+        "self.plate": {
+            "name": "plate",
+            "description": "The plate needs to be clear.",
+            "modelname": "003_plate",
+        },
+        "self.hamburg": {
+            "name": "hamburg",
+            "description": "A random object placed on the plate, which may obstruct access to the plate. The object can vary in shape and size.",
+            "modelname": "006_hamburg",
+        },
+        "self.mug": {
+            "name": "mug",
+            "description": "A random object placed on or near the plate, which may obstruct access to the plate. The object can vary in shape and size.",
+            "modelname": "039_mug",
+        },
+    },
+}
 
 BEAT_BLOCK_HAMMER = {
     "task_name": "beat_block_hammer",

@@ -310,15 +310,15 @@ class Robot:
             self.right_proc.start()
 
         if self.need_topp:
-            self.left_mplib_planner = MplibPlanner(
-                self.left_urdf_path,
-                self.left_srdf_path,
-                self.left_move_group,
-                self.left_entity_origion_pose,
-                self.left_entity,
-                self.left_planner_type,
-                scene,
-            )
+            # self.left_mplib_planner = MplibPlanner(
+            #     self.left_urdf_path,
+            #     self.left_srdf_path,
+            #     self.left_move_group,
+            #     self.left_entity_origion_pose,
+            #     self.left_entity,
+            #     self.left_planner_type,
+            #     scene,
+            # )
             self.right_mplib_planner = MplibPlanner(
                 self.right_urdf_path,
                 self.right_srdf_path,
