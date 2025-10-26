@@ -26,11 +26,11 @@ class find_the_plate(Base_Task):
             modelname="003_plate",
             model_id=0,
             convex=True,
-            scale=2.2
+            scale=2.4
         )
         self.plate.set_mass(0.05)
 
-        pose = (sapien.Pose([plate_pos.p[0]+ 0.03, plate_pos.p[1] + 0.02, 0.785], [0.707109, 0.707104, 0, 0]),
+        pose = (sapien.Pose([plate_pos.p[0]+ 0.05, plate_pos.p[1] + 0.04, 0.785], [0.707109, 0.707104, 0, 0]),
                 sapien.Pose([plate_pos.p[0]- 0.05, plate_pos.p[1], 0.762], [0.707109, 0.707104, 0, 0]))
 
 
@@ -60,9 +60,6 @@ class find_the_plate(Base_Task):
         # Use only right arm as specified
         right_arm = ArmTag("right")
         
-        # Initial observation
-        self.save_camera_images(task_name="find_the_plate", step_name="step1_initial_scene_state", generate_num_id="generate_num_3")
-        
         # Get plate position to use as reference
         plate_pose = self.plate.get_pose()
         plate_position = plate_pose.p
@@ -80,15 +77,12 @@ class find_the_plate(Base_Task):
                 grasp_dis=0
             )
         )
-        
-        # Observation after grasping mug
-        self.save_camera_images(task_name="find_the_plate", step_name="step2_mug_grasped", generate_num_id="generate_num_3")
-        
+                
         # Lift mug up to avoid collision
         self.move(
             self.move_by_displacement(
                 arm_tag=right_arm,
-                z=0.1,
+                z=0.3,
                 move_axis='world'
             )
         )
@@ -109,7 +103,7 @@ class find_the_plate(Base_Task):
                 actor=self.mug,
                 arm_tag=right_arm,
                 target_pose=mug_target_pose,
-                functional_point_id=1,  # Use bottom functional point for placement
+                functional_point_id=0,  # Use bottom functional point for placement
                 pre_dis=0.1,
                 dis=0.02,
                 is_open=True,
@@ -117,10 +111,7 @@ class find_the_plate(Base_Task):
                 pre_dis_axis='fp'
             )
         )
-        
-        # Observation after placing mug
-        self.save_camera_images(task_name="find_the_plate", step_name="step3_mug_placed", generate_num_id="generate_num_3")
-        
+                
         # Lift gripper after placing mug
         self.move(
             self.move_by_displacement(
@@ -141,14 +132,11 @@ class find_the_plate(Base_Task):
             )
         )
         
-        # Observation after grasping hamburg
-        self.save_camera_images(task_name="find_the_plate", step_name="step4_hamburg_grasped", generate_num_id="generate_num_3")
-        
         # Lift hamburg up to avoid collision
         self.move(
             self.move_by_displacement(
                 arm_tag=right_arm,
-                z=0.1,
+                z=0.2,
                 move_axis='world'
             )
         )
@@ -169,7 +157,6 @@ class find_the_plate(Base_Task):
                 actor=self.hamburg,
                 arm_tag=right_arm,
                 target_pose=hamburg_target_pose,
-                functional_point_id=0,  # Use bottom functional point for placement
                 pre_dis=0.1,
                 dis=0.02,
                 is_open=True,
@@ -192,10 +179,6 @@ class find_the_plate(Base_Task):
         
         # Return arm to origin
         self.move(self.back_to_origin(arm_tag=right_arm))
-        
-        # Final observation
-        self.save_camera_images(task_name="find_the_plate", step_name="step6_final_scene_state", generate_num_id="generate_num_3")
-        self.is_finshed_flag = True
     def check_success(self):
         # both on the table
         return abs(self.mug.get_pose().p[2] - self.plate.get_pose().p[2]) < 0.02 and\
