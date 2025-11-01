@@ -22,6 +22,7 @@ assets/*
 policy/weights/*
 
 envs/curobo/*
+envs_gen/*
 
 .vscode
 /config.json

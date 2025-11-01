@@ -3,9 +3,7 @@ from pydantic import BaseModel, Field
 import json
 import os
 from openai import OpenAI
-from azure.ai.inference import ChatCompletionsClient
-from azure.ai.inference.models import SystemMessage, UserMessage
-from azure.core.credentials import AzureKeyCredential
+import volcengine
 
 # ---------- 配置 ----------
 base_url = "https://api.moonshot.cn/v1"   # Kimi 的 OpenAI-Compatible 入口
@@ -31,7 +29,7 @@ def generate(messages: List[dict], custom_format: Type[BaseModel]) -> Optional[B
             "You must output a single, valid JSON object with exactly these fields:\n"
             "{\n"
             '  "stepsOfTask": ["step1", "step2", ...],\n'
-            '  "instructions": [{ "content": "instruction text","degreeOfDetail": 7, "armMention": false, "numOfWords": 15}] \n'
+            '  "instructions": [{ "content": "instruction text","degreeOfDetail": 7, "armMention": false, "numOfWords": 15}] \n}'
             "No extra keys, no nesting, no markdown code block."
         ),
     })
@@ -39,7 +37,7 @@ def generate(messages: List[dict], custom_format: Type[BaseModel]) -> Optional[B
         model=model,
         messages=messages,
         max_tokens=4096,
-        temperature=0.8,
+        temperature=0.,
         top_p=1.0,
         response_format={"type": "json_object"},   # Kimi 同样支持
     )

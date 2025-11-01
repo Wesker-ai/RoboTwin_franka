@@ -2,6 +2,7 @@ import json
 from agent import *
 from argparse import ArgumentParser
 import os
+import time
 
 with open("./_generate_task_prompt.txt", "r") as f:
     system_prompt = f.read()
@@ -96,6 +97,7 @@ def generate_task_description(task_name, instruction_num):
     # task_info['unseen'] = result[0:2]
     with open(f"./task_instruction/{task_name}.json", "w") as f:
         json.dump(task_info, f, indent=2, ensure_ascii=False)
+    time.sleep(20) # makeshift for rate limit
 
 
 if __name__ == "__main__":

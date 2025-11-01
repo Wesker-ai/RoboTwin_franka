@@ -38,12 +38,13 @@ class find_the_plate(Base_Task):
 
         # choose the pose not used by the mug
         soap_pose = pose[1] if mug_pose is pose[0] else pose[0]
+        self.soap_id = random.randint(2, 3)
         self.soap = create_actor(
             scene=self,
             pose=sapien.Pose([plate_pos.p[0]+ random.uniform(0.04, 0.044) * soap_pose, plate_pos.p[1]+ random.uniform(0.04, 0.044) * soap_pose, 0.760], [0.707109, 0.707104, 0, 0]),
             modelname="107_soap",
             convex=True,
-            model_id=random.randint(2, 3),
+            model_id=self.soap_id,
             scale=0.7,
         )
 
@@ -173,3 +174,11 @@ class find_the_plate(Base_Task):
         self.move(
             self.back_to_origin(arm_tag=right_arm)
         )
+
+        self.info["info"] = {
+            "{A}": "003_plate/base0",
+            "{B}": "039_mug/base1",
+            "{C}": f"107_soap/base{self.soap_id}",
+            "{a}": str(right_arm),
+        }
+        return self.info

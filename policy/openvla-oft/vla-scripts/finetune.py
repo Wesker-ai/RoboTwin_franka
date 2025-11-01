@@ -61,7 +61,7 @@ from prismatic.training.train_utils import (
 from prismatic.util.data_utils import PaddedCollatorForActionPrediction
 from prismatic.vla.action_tokenizer import ActionTokenizer
 from prismatic.vla.constants import (
-    ACTION_DIM,
+    ACTION_DIM, # TODO: Franka has different dimension
     ACTION_PROPRIO_NORMALIZATION_TYPE,
     NUM_ACTIONS_CHUNK,
     PROPRIO_DIM,
