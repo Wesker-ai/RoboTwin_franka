@@ -343,7 +343,7 @@ if __name__ == "__main__":
     now_task = None
     
     try:
-        task_name = "FIND_THE_PLATE"  # For testing purpose
+        task_name = "PLACE_THE_APPLE_INTO_THE_PLATE"  # For testing purpose
         exec(f'now_task = {task_name}')
     except Exception as e:
         raise ValueError(f"The task name is wrong: {e}")

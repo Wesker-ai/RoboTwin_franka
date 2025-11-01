@@ -5,21 +5,21 @@ import sapien
 
 class gpt_find_the_plate(find_the_plate):
     def play_once(self):
-        # Use only right arm as specified
+        # Use only right arm as specified in task description
         right_arm = ArmTag("right")
         
         # Initial observation
-        self.save_camera_images(task_name="find_the_plate", step_name="step1_initial_scene_state", generate_num_id="generate_num_3")
+        self.save_camera_images(task_name="find_the_plate", step_name="step1_initial_scene", generate_num_id="generate_num_0")
         
-        # Get plate position to use as reference
-        plate_pose = self.plate.get_pose()
-        plate_position = plate_pose.p
+        # Get plate functional point for placement reference
+        plate_center_pose = self.plate.get_functional_point(0, "pose")
         
-        # Define placement area away from plate (0.3 meters in front and right of plate)
-        placement_offset = 0.3
+        # First move mug away from plate
+        # Get mug position to determine if we need to grasp it
+        mug_pose = self.mug.get_pose()
+        mug_position = mug_pose.p
         
-        # Move mug first as specified
-        # Grasp mug
+        # Grasp the mug with right arm
         self.move(
             self.grasp_actor(
                 actor=self.mug,
@@ -30,34 +30,39 @@ class gpt_find_the_plate(find_the_plate):
         )
         
         # Observation after grasping mug
-        self.save_camera_images(task_name="find_the_plate", step_name="step2_mug_grasped", generate_num_id="generate_num_3")
+        self.save_camera_images(task_name="find_the_plate", step_name="step2_mug_grasped", generate_num_id="generate_num_0")
         
         # Lift mug up to avoid collision
         self.move(
             self.move_by_displacement(
                 arm_tag=right_arm,
-                z=0.1,
+                z=0.07,
                 move_axis='world'
             )
         )
         
-        # Generate placement position for mug away from plate
-        mug_target_position = [
-            plate_position[0] + placement_offset,
-            plate_position[1] + placement_offset,
-            plate_position[2]  # Same height as plate
+        # Observation after lifting mug
+        self.save_camera_images(task_name="find_the_plate", step_name="step3_mug_lifted", generate_num_id="generate_num_0")
+        
+        # Find a safe placement location away from plate
+        # Move mug to a position offset from plate (e.g., 0.3 meters to the right)
+        safe_placement_pose = [
+            plate_center_pose.p[0] + 0.3,  # x: right of plate
+            plate_center_pose.p[1],         # y: same as plate
+            plate_center_pose.p[2],         # z: same height as plate
+            plate_center_pose.q[0],         # qw
+            plate_center_pose.q[1],         # qx
+            plate_center_pose.q[2],         # qy
+            plate_center_pose.q[3]          # qz
         ]
         
-        # Create target pose for mug placement
-        mug_target_pose = [mug_target_position[0], mug_target_position[1], mug_target_position[2], 1.0, 0.0, 0.0, 0.0]
-        
-        # Place mug away from plate
+        # Place mug at safe location
         self.move(
             self.place_actor(
                 actor=self.mug,
                 arm_tag=right_arm,
-                target_pose=mug_target_pose,
-                functional_point_id=1,  # Use bottom functional point for placement
+                target_pose=safe_placement_pose,
+                functional_point_id=1,  # Use bottom functional point for stable placement
                 pre_dis=0.1,
                 dis=0.02,
                 is_open=True,
@@ -67,89 +72,114 @@ class gpt_find_the_plate(find_the_plate):
         )
         
         # Observation after placing mug
-        self.save_camera_images(task_name="find_the_plate", step_name="step3_mug_placed", generate_num_id="generate_num_3")
+        self.save_camera_images(task_name="find_the_plate", step_name="step4_mug_placed", generate_num_id="generate_num_0")
         
-        # Lift gripper after placing mug
+        # Lift gripper after placing
         self.move(
             self.move_by_displacement(
                 arm_tag=right_arm,
-                z=0.1,
+                z=0.07,
                 move_axis='world'
             )
         )
         
-        # Now move hamburg
-        # Grasp hamburg
-        self.move(
-            self.grasp_actor(
-                actor=self.hamburg,
-                arm_tag=right_arm,
-                pre_grasp_dis=0.1,
-                grasp_dis=0
+        # Observation after lifting gripper
+        self.save_camera_images(task_name="find_the_plate", step_name="step5_gripper_lifted_after_mug", generate_num_id="generate_num_0")
+        
+        # Check if soap is on or near the plate and needs to be moved
+        soap_pose = self.soap.get_pose()
+        soap_position = soap_pose.p
+        
+        # If soap is close to plate (within 0.2 meters), move it away
+        plate_position = plate_center_pose.p
+        distance_to_plate = ((soap_position[0] - plate_position[0])**2 + 
+                           (soap_position[1] - plate_position[1])**2 + 
+                           (soap_position[2] - plate_position[2])**2)**0.5
+        
+        if distance_to_plate < 0.2:
+            # Grasp soap with right arm
+            self.move(
+                self.grasp_actor(
+                    actor=self.soap,
+                    arm_tag=right_arm,
+                    pre_grasp_dis=0.1,
+                    grasp_dis=0,
+                    contact_point_id=[0]  # Use contact point for soap
+                )
             )
-        )
-        
-        # Observation after grasping hamburg
-        self.save_camera_images(task_name="find_the_plate", step_name="step4_hamburg_grasped", generate_num_id="generate_num_3")
-        
-        # Lift hamburg up to avoid collision
-        self.move(
-            self.move_by_displacement(
-                arm_tag=right_arm,
-                z=0.1,
-                move_axis='world'
+            
+            # Observation after grasping soap
+            self.save_camera_images(task_name="find_the_plate", step_name="step6_soap_grasped", generate_num_id="generate_num_0")
+            
+            # Lift soap up
+            self.move(
+                self.move_by_displacement(
+                    arm_tag=right_arm,
+                    z=0.07,
+                    move_axis='world'
+                )
             )
-        )
-        
-        # Generate placement position for hamburg away from plate (different location than mug)
-        hamburg_target_position = [
-            plate_position[0] - placement_offset,
-            plate_position[1] + placement_offset,
-            plate_position[2]  # Same height as plate
-        ]
-        
-        # Create target pose for hamburg placement
-        hamburg_target_pose = [hamburg_target_position[0], hamburg_target_position[1], hamburg_target_position[2], 1.0, 0.0, 0.0, 0.0]
-        
-        # Place hamburg away from plate
-        self.move(
-            self.place_actor(
-                actor=self.hamburg,
-                arm_tag=right_arm,
-                target_pose=hamburg_target_pose,
-                functional_point_id=0,  # Use bottom functional point for placement
-                pre_dis=0.1,
-                dis=0.02,
-                is_open=True,
-                constrain="free",
-                pre_dis_axis='fp'
+            
+            # Observation after lifting soap
+            self.save_camera_images(task_name="find_the_plate", step_name="step7_soap_lifted", generate_num_id="generate_num_0")
+            
+            # Place soap away from plate (opposite side from mug)
+            soap_safe_pose = [
+                plate_center_pose.p[0] - 0.3,  # x: left of plate
+                plate_center_pose.p[1],        # y: same as plate
+                plate_center_pose.p[2],        # z: same height as plate
+                plate_center_pose.q[0],        # qw
+                plate_center_pose.q[1],        # qx
+                plate_center_pose.q[2],        # qy
+                plate_center_pose.q[3]         # qz
+            ]
+            
+            self.move(
+                self.place_actor(
+                    actor=self.soap,
+                    arm_tag=right_arm,
+                    target_pose=soap_safe_pose,
+                    pre_dis=0.1,
+                    dis=0.02,
+                    is_open=True,
+                    constrain="free",
+                    pre_dis_axis='grasp'
+                )
             )
-        )
-        
-        # Observation after placing hamburg
-        self.save_camera_images(task_name="find_the_plate", step_name="step5_hamburg_placed", generate_num_id="generate_num_3")
-        
-        # Lift gripper after placing hamburg
-        self.move(
-            self.move_by_displacement(
-                arm_tag=right_arm,
-                z=0.1,
-                move_axis='world'
+            
+            # Observation after placing soap
+            self.save_camera_images(task_name="find_the_plate", step_name="step8_soap_placed", generate_num_id="generate_num_0")
+            
+            # Lift gripper after placing soap
+            self.move(
+                self.move_by_displacement(
+                    arm_tag=right_arm,
+                    z=0.07,
+                    move_axis='world'
+                )
             )
-        )
+            
+            # Observation after lifting gripper after soap
+            self.save_camera_images(task_name="find_the_plate", step_name="step9_gripper_lifted_after_soap", generate_num_id="generate_num_0")
         
-        # Return arm to origin
-        self.move(self.back_to_origin(arm_tag=right_arm))
+        # Return right arm to origin position
+        self.move(
+            self.back_to_origin(arm_tag=right_arm)
+        )
         
         # Final observation
-        self.save_camera_images(task_name="find_the_plate", step_name="step6_final_scene_state", generate_num_id="generate_num_3")
+        self.save_camera_images(task_name="find_the_plate", step_name="step10_final_scene", generate_num_id="generate_num_0")
 
 '''
 Observation Point Analysis:
-1. initial_scene_state - Initial scene before any manipulation
-2. mug_grasped - After grasping the mug object
-3. mug_placed - After placing the mug at new location
-4. hamburg_grasped - After grasping the hamburg object
-5. hamburg_placed - After placing the hamburg at new location
-6. final_scene_state - Final scene after all manipulations
+1. Initial scene state before any operations
+2. After grasping the mug
+3. After lifting the mug up
+4. After placing the mug in safe location
+5. After lifting gripper after mug placement
+6. After grasping the soap (if applicable)
+7. After lifting the soap up (if applicable)
+8. After placing the soap in safe location (if applicable)
+9. After lifting gripper after soap placement (if applicable)
+10. Final scene state after all operations
 '''

@@ -38,10 +38,10 @@ TASK_NAME = {
 FIND_THE_PLATE = {
     "task_name": "find_the_plate",
     "task_description": "Remove the objects over the plate and expose the plate to the air, and you should only use right arm to accomplish the task.\
-                        The plate is randomly placed on the table, and there may be one or more objects randomly placed on the plate, which may obstruct access to the plate.\
-                        You should place the plate where no object occupies, which means you might use a loop to generate a random place and check whether it is occupied, and \
-                        decide to place the mug and hanburg at the genertated place or not.\
-                        You should move the mug first.\
+                        The plate is randomly placed on the table.\
+                        You should place the plate where no object occupies. If the task keeps failing, it might be caused by place_actor and planners' Inverse Kinemetics Error, which hints that \
+                        the target pose should be adapt.\
+                        You should move the mug first. You might keep the pose of the object before and after the placement, but if it is not always necessary.\
                         Note: You need to make sure that there is no object on the plate at the end of the task.",
     "current_code":'''
         class find_the_plate(Base_Task):
@@ -54,19 +54,44 @@ FIND_THE_PLATE = {
             "description": "The plate needs to be clear.",
             "modelname": "003_plate",
         },
-        "self.hamburg": {
-            "name": "hamburg",
-            "description": "A random object placed on the plate, which may obstruct access to the plate. The object can vary in shape and size.",
-            "modelname": "006_hamburg",
-        },
         "self.mug": {
             "name": "mug",
-            "description": "A random object placed on or near the plate, which may obstruct access to the plate. The object can vary in shape and size.",
+            "description": "A random object placed on the plate, which may obstruct access to the plate.",
             "modelname": "039_mug",
+        },
+        "self.soap": {
+            "name": "mug",
+            "description": "A random object placed on or near the plate, which may obstruct access to the plate.",
+            "modelname": "107_soap",
         },
     },
 }
-
+PLACE_THE_APPLE_INTO_THE_PLATE = {
+    "task_name": "place_the_apple_into_the_plate",                # Name of the task
+    "task_description": "place the apple on the plate, just on the plate\
+                        You should accomplish the task only with right hand",               # Detailed description of the task
+    "current_code": '''
+                class gpt_place_the_apple_into_the_plate(place_the_apple_into_the_plate):
+                    def play_once(self):
+                        pass
+                '''      ,                    # Code template to be completed
+    "actor_list": {                          # List of involved objects; can be a dictionary or a simple list
+        "self.plate": {
+            "name": "plate",               # Object name
+            "description": "where you should place the apple",            # Description of the object
+            "modelname": "003_plate"        # Name of the 3D model representing the object
+        },
+        "self.apple": {
+            "name": "apple",
+            "description": "the apple you need to place into the plate",
+            "modelname": "035_apple"
+        },
+        # ... more objects
+    },
+    # Alternatively, the actor_list can be a simple list:
+    # "actor_list": ["self.object1", "self.object2", ...],
+    # To make Code Generation easier, the actor_list also includes some pose like target pose or middle pose, this is optional and dont have modelname.
+}
 BEAT_BLOCK_HAMMER = {
     "task_name": "beat_block_hammer",
     "task_description":
