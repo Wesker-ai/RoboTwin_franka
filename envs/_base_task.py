@@ -159,6 +159,102 @@ class Base_Task(gym.Env):
 
         self.stage_success_tag = False
 
+#=================visualizers and Scene Setup testor==================    
+    def _init_task_visualizer_(self, table_xy_bias=[0, 0], table_height_bias=0, **kwags):
+        """
+        初始化场景可视化器（仅保留场景、桌子、墙壁、相机和随机物品，无机器人）
+        功能：创建场景、加载桌子/墙壁、相机和随机物品，用于单独场景可视化调试
+        增加加载机器人功能，用于机器人任务直接控制
+        """
+        super().__init__()
+        ta.setup_logging("CRITICAL")  # 隐藏日志
+        np.random.seed(kwags.get("seed", 0))
+        torch.manual_seed(kwags.get("seed", 0))
+
+        # 基础参数初始化
+        self.FRAME_IDX = 0
+        self.task_name = kwags.get("task_name", "visualization")
+        self.save_dir = kwags.get("save_path", "data/visualization")
+        self.ep_num = kwags.get("now_ep_num", 0)
+        self.render_freq = kwags.get("render_freq", 10)  # 可视化频率
+        self.data_type = kwags.get("data_type", None)
+        self.save_data = kwags.get("save_data", False)
+        self.eval_mode = kwags.get("eval_mode", False)
+        #机器人配置
+        self.need_topp = True  # TODO
+
+        # 随机化配置
+        random_setting = kwags.get("domain_randomization", {})
+        self.random_background = random_setting.get("random_background", False)
+        self.cluttered_table = random_setting.get("cluttered_table", False)
+        self.clean_background_rate = random_setting.get("clean_background_rate", 1)
+        self.random_head_camera_dis = random_setting.get("random_head_camera_dis", 0)
+        self.random_table_height = random_setting.get("random_table_height", 0)
+        self.random_light = random_setting.get("random_light", False)
+        self.crazy_random_light_rate = random_setting.get("crazy_random_light_rate", 0)
+        self.crazy_random_light = (0 if not self.random_light else np.random.rand() < self.crazy_random_light_rate)
+
+        # 场景初始化
+        self.setup_scene()  # 创建场景、灯光等
+
+        # 辅助变量初始化
+        self.file_path = []
+        self.now_obs = {}
+        self.take_action_cnt = 0
+        self.eval_video_path = kwags.get("eval_video_save_dir", None)
+        self.save_freq = kwags.get("save_freq")
+        self.world_pcd = None
+
+        # 物品相关变量
+        self.size_dict = list()
+        self.cluttered_objs = list()
+        self.prohibited_area = list()  # 禁止放置区域 [x_min, y_min, x_max, y_max]
+        self.record_cluttered_objects = list()  # 记录随机物品信息
+
+        # 桌子高度偏移
+        self.table_z_bias = (np.random.uniform(low=-self.random_table_height, high=0) + table_height_bias)
+
+        # 创建桌子和墙壁
+        self.create_table_and_wall(table_xy_bias=table_xy_bias, table_height=0.74)
+
+        # 加载机器人
+        self.load_robot(**kwags)
+        self.load_camera(**kwags)
+        self.robot.move_to_homestate() # 仅仅移右手臂
+
+        render_freq = self.render_freq
+        self.render_freq = 0
+        self.together_open_gripper(save_freq=None) # 仅仅使用右侧夹抓
+        self.render_freq = render_freq
+
+        self.robot.set_origin_endpose()
+
+
+        # 加载任务相关物品（如果有）
+        self.load_actors()
+
+        # 添加随机物品到桌子
+        if self.cluttered_table:
+            self.get_cluttered_table()
+
+        # 简化稳定性检查（仅打印警告，不抛出异常）
+        is_stable, unstable_list = self.check_stable()
+        if not is_stable:
+            print(f"Warning: Unstable objects in seed {kwags.get('seed', 0)}: {', '.join(unstable_list)}")
+
+        # 信息记录
+        self.info = dict()
+        self.info["cluttered_table_info"] = self.record_cluttered_objects
+        self.info["texture_info"] = {
+            "wall_texture": self.wall_texture,
+            "table_texture": self.table_texture,
+        }
+        self.info["info"] = {}
+
+        self.stage_success_tag = False
+
+#=================functions==================
+
     def check_stable(self):
         actors_list, actors_pose_list = [], []
         for actor in self.scene.get_all_actors():
@@ -437,6 +533,7 @@ class Base_Task(gym.Env):
         self.cameras = Camera(
             bias=self.table_z_bias,
             random_head_camera_dis=self.random_head_camera_dis,
+            robot=self.robot,  # 增加机器人实例参数
             **kwags,
         )
         self.cameras.load_camera(self.scene)

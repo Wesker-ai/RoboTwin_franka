@@ -58,6 +58,7 @@ class Camera:
         self.collect_head_camera = kwags["camera"].get("collect_head_camera", True)
         self.collect_wrist_camera = kwags["camera"].get("collect_wrist_camera", True)
 
+        self.robot = robot = kwags.get("robot", None)
         # embodiment = kwags.get('embodiment')
         # embodiment_config_path = os.path.join(CONFIGS_PATH, '_embodiment_config.yml')
         # with open(embodiment_config_path, 'r', encoding='utf-8') as f:
@@ -141,14 +142,30 @@ class Camera:
                 far=far,
             )
 
-            self.right_camera = scene.add_camera(
-                name="right_camera",
-                width=wrist_camera_config["w"],
-                height=wrist_camera_config["h"],
-                fovy=np.deg2rad(wrist_camera_config["fovy"]),
-                near=near,
-                far=far,
-            )
+            # self.right_camera = scene.add_camera(
+            #     name="right_camera",
+            #     width=wrist_camera_config["w"],
+            #     height=wrist_camera_config["h"],
+            #     fovy=np.deg2rad(wrist_camera_config["fovy"]),
+            #     near=near,
+            #     far=far,
+            # )
+            if hasattr(self, 'robot'):
+                self.right_camera = scene.add_mounted_camera(
+                    name="right_camera",
+                    mount=self.robot.right_entity.links[13].entity,
+                    pose=sapien.Pose(np.array([[1, 0, 0, 0],
+                                                [0, 1, 0, 0],
+                                                [0, 0, 1, 0],
+                                                [0, 0, 0, 1]])),
+                    width=wrist_camera_config["w"],
+                    height=wrist_camera_config["h"],
+                    fovy=np.deg2rad(wrist_camera_config["fovy"]),
+                    near=near,
+                    far=far,
+                )
+
+
 
         # ================================= sensor camera =================================
         # sensor_config = StereoDepthSensorConfig()
@@ -269,6 +286,23 @@ class Camera:
         world_cam_mat44[:3, :3] = np.stack([world_cam_forward, world_cam_left, world_cam_up], axis=1)
         world_cam_mat44[:3, 3] = world_cam_pos
         self.world_camera2.entity.set_pose(sapien.Pose(world_cam_mat44))
+
+    # def set_camera(self):
+    #     camera_line = self.planner.robot.links[14].entity
+    #     self.camera = self.scene.add_mounted_camera(
+    #         name="camera",
+    #         mount=camera_line,
+    #         pose=sapien.Pose(np.array([[1, 0, 0, 0],
+    #                                     [0, 1, 0, 0],
+    #                                     [0, 0, 1, 0],
+    #                                     [0, 0, 0, 1]])),
+    #         width=1920,
+    #         height=1080,
+    #         fovy=np.deg2rad(87),
+    #         near=0.1,
+    #         far=100,
+    #     )
+
 
     def update_picture(self):
         # camera
