@@ -1,0 +1,33 @@
+{
+  "full_description": "use only right hand to get the apple, which is hidden under staffs. Remember use the marks in schema to repersent related objects in 'seen' and 'unseen'.",
+  "schema": "{A} notifies the apple. {a} notifies the right arm.",
+  "preference": "num of words should not exceed 15. Degree of detail avg 7.",
+  "seen": [
+    "Reach under staffs with your right arm.",
+    "Retrieve the apple with your right hand.",
+    "Search for the apple under the staffs.",
+    "With your right arm, find the hidden apple.",
+    "Grasping the apple, use your right hand.",
+    "The apple is under staffs, use your right arm.",
+    "Locate the apple with your right hand.",
+    "Use your right arm to find the apple.",
+    "Find the apple under staffs with your right hand.",
+    "Retrieve the apple using your right hand.",
+    "With {a}, search for {A} under staffs.",
+    "Grasping {A} with {a} from under staffs.",
+    "Retrieve {A} using only {a} under staffs.",
+    "Find {A} under staffs using just {a}.",
+    "Use {a} to get {A} hidden under staffs.",
+    "Search for {A} under staffs with only {a}.",
+    "Find {A} under staffs using the right arm.",
+    "Retrieve {A} under staffs with your right arm.",
+    "Use your right arm to find {A} under staffs.",
+    "Get {A} under staffs with your right arm."
+  ],
+  "unseen": [
+    "Find the apple hidden under staffs.",
+    "Use your right hand to get the apple.",
+    "Find {A} hidden under staffs with {a}.",
+    "Use {a} to reach for {A} under staffs."
+  ]
+}

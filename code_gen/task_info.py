@@ -66,9 +66,10 @@ FIND_THE_PLATE = {
         },
     },
 }
-PLACE_THE_APPLE_INTO_THE_PLATE = {
+FIND_THE_HIDDEN_APPLE = {
     "task_name": "place_the_apple_into_the_plate",                # Name of the task
-    "task_description": "place the apple on the plate, just on the plate\
+    "task_description": "place the apple on the plate.\
+                        The apple is hidden under the notebook or some staff.\
                         You should accomplish the task only with right hand",               # Detailed description of the task
     "current_code": '''
                 class gpt_place_the_apple_into_the_plate(place_the_apple_into_the_plate):
@@ -86,11 +87,12 @@ PLACE_THE_APPLE_INTO_THE_PLATE = {
             "description": "the apple you need to place into the plate",
             "modelname": "035_apple"
         },
-        # ... more objects
+        "self.notebook":{
+            "name":"notebook",
+            "description": "the notebook that covers the apple.",
+            "modelname": "092_notebook"
+        }
     },
-    # Alternatively, the actor_list can be a simple list:
-    # "actor_list": ["self.object1", "self.object2", ...],
-    # To make Code Generation easier, the actor_list also includes some pose like target pose or middle pose, this is optional and dont have modelname.
 }
 BEAT_BLOCK_HAMMER = {
     "task_name": "beat_block_hammer",

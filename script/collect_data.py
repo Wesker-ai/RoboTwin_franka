@@ -240,7 +240,12 @@ if __name__ == "__main__":
     import torch.multiprocessing as mp
     mp.set_start_method("spawn", force=True)
 
-    task_name = "find_the_plate"
-    task_config = "find_the_plate"
+    import argparse
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('task_name', type=str)
+    parser.add_argument('--task_config', type=str, default=None)
+    paresed = parser.parse_args()
+    if not paresed.task_config:
+        paresed.task_config = paresed.task_name
 
-    main(task_name=task_name, task_config=task_config)
+    main(task_name=paresed.task_name, task_config=paresed.task_config)

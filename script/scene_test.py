@@ -92,6 +92,8 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("task_name", nargs='?', default="find_the_plate")
-    parser.add_argument("task_config", nargs='?', default="find_the_plate")
+    parser.add_argument("task_config", nargs='?', default=None)
     parsed = parser.parse_args()
+    if not parsed.task_config:
+        parsed.task_config = parsed.task_name
     main(task_name=parsed.task_name, task_config=parsed.task_config)

@@ -343,10 +343,10 @@ if __name__ == "__main__":
     now_task = None
     
     try:
-        task_name = "PLACE_THE_APPLE_INTO_THE_PLATE"  # For testing purpose
+        task_name = parser.parse_args().task_name.upper()
         exec(f'now_task = {task_name}')
     except Exception as e:
-        raise ValueError(f"The task name is wrong: {e}")
+        raise ValueError(f"The task name is wrong: {e}")    
 
     main(now_task)
 
