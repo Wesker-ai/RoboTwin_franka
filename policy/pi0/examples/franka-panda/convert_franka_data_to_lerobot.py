@@ -44,6 +44,15 @@ def create_empty_dataset(
     dataset_config: DatasetConfig = DEFAULT_DATASET_CONFIG,
 ) -> LeRobotDataset:
     motors = [
+        "left_panda_joint_1",
+        "left_panda_joint_2",
+        "left_panda_joint_3",
+        "left_panda_joint_4",
+        "left_panda_joint_5",
+        "left_panda_joint_6",
+        "left_panda_joint_7",
+        "left_gripper_finger_joint_1",
+        # prepare for dual-arm tasks
         "right_panda_joint_1",
         "right_panda_joint_2",
         "right_panda_joint_3",
@@ -51,16 +60,17 @@ def create_empty_dataset(
         "right_panda_joint_5",
         "right_panda_joint_6",
         "right_panda_joint_7",
+        "right_gripper_finger_joint_1",
     ]
-    gripper = ["panda_gripper"]
 
     cameras = [
         "cam_high",
+        "cam_left_wrist",
         "cam_right_wrist",
     ]
 
     features = {
-        "observation.joint_position": {
+        "observation.state": {
             "dtype": "float32",
             "shape": (len(motors), ),
             "names": [
@@ -74,13 +84,6 @@ def create_empty_dataset(
                 motors,
             ],
         },
-        "gripper_position":{
-            "dtype":"float32",
-            "shape": (len(gripper),),
-            "names":[
-                gripper,
-            ]
-        }
     }
 
     if has_velocity:
@@ -102,37 +105,15 @@ def create_empty_dataset(
         }
 
     for cam in cameras:
-        if cam == "cam_high":
-            features["observation.exterior_iamge_1_left"] = {
-                "dtype": mode,
-                "shape": (3, 480, 640),
-                "names": [
-                    "channels",
-                    "height",
-                    "width"
-                ]
-            }
-        if cam == "cam_right_wrist":
-            features["observation.wrist_image_left"] = {
-                "dtype": mode,
-                "shape": (3, 480, 640),
-                "names": [
-                    "channels",
-                    "height",
-                    "width"
-                ]
-            }
-
-    # for cam in cameras:
-    #     features[f"observation.images.{cam}"] = {
-    #         "dtype": mode,
-    #         "shape": (3, 480, 640),
-    #         "names": [
-    #             "channels",
-    #             "height",
-    #             "width",
-    #         ],
-    #     }
+        features[f"observation.images.{cam}"] = {
+            "dtype": mode,
+            "shape": (3, 480, 640),
+            "names": [
+                "channels",
+                "height",
+                "width",
+            ],
+        }
 
     if Path(HF_LEROBOT_HOME / repo_id).exists():
         shutil.rmtree(HF_LEROBOT_HOME / repo_id)
@@ -261,13 +242,18 @@ def populate_dataset(
             instruction = np.random.choice(instructions)
         for i in range(num_frames):
             frame = {
-                "observation.joint_position": state[i],
-                "prompt": instruction,
+                "observation.state": state[i],
+                "action": action[i],
+                "task": instruction,
             }
 
             for camera, img_array in imgs_per_cam.items():
-                name = "wrist_image_left" if camera == "cam_right_wrist" else "exterior_image_1_left"
-                frame[f"observation.{name}" ] = img_array[i]
+                frame[f"observation.images.{camera}"] = img_array[i]
+
+            if velocity is not None:
+                frame["observation.velocity"] = velocity[i]
+            if effort is not None:
+                frame["observation.effort"] = effort[i]
             dataset.add_frame(frame)
         dataset.save_episode()
 
