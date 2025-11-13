@@ -98,7 +98,7 @@ class find_the_hidden_apple(Base_Task):
             self.grasp_actor(
                 actor=self.test_notebook,
                 arm_tag=arm_tag,
-                contact_point_id=2
+                
             )
         )
 

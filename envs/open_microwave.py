@@ -29,7 +29,7 @@ class open_microwave(Base_Task):
         self.prohibited_area.append([-0.25, -0.25, 0.25, 0.1])
 
     def play_once(self):
-        arm_tag = ArmTag("left")
+        arm_tag = ArmTag("right")
 
         # Grasp the microwave with pre-grasp displacement
         self.move(self.grasp_actor(self.microwave, arm_tag=arm_tag, pre_grasp_dis=0.08, contact_point_id=0))

@@ -223,6 +223,7 @@ def eval_policy(task_name,
             try:
                 TASK_ENV.setup_demo(now_ep_num=now_id, seed=now_seed, is_test=True, **args)
                 episode_info = TASK_ENV.play_once()
+                
                 TASK_ENV.close_env()
             except UnStableError as e:
                 # print(" -------------")

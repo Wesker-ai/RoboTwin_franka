@@ -116,7 +116,7 @@ class ACT:
         # Temporal aggregation settings
         self.temporal_agg = args_override.get("temporal_agg", False)
         self.num_queries = args_override["chunk_size"]
-        self.state_dim = RoboTwin_Config.action_dim  # Standard joint dimension for bimanual robot
+        self.state_dim = 16 # RoboTwin_Config.action_dim  # Standard joint dimension for bimanual robot
         self.max_timesteps = 3000  # Large enough for deployment
 
         # Set query frequency based on temporal_agg - matching imitate_episodes.py logic

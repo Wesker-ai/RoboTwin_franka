@@ -1661,7 +1661,7 @@ class Base_Task(gym.Env):
                 current_jointstate[:left_arm_dim],
                 current_jointstate[left_arm_dim + 1:left_arm_dim + right_arm_dim + 1],
             )
-            left_path = np.vstack((left_current_qpos, left_arm_actions))
+            # left_path = np.vstack((left_current_qpos, left_arm_actions)) # hard code from the base to block left arm's action
             right_path = np.vstack((right_current_qpos, right_arm_actions))
 
             # ========== TOPP ==========
@@ -1773,23 +1773,14 @@ class Base_Task(gym.Env):
             right_gripper = right_gripper + region_right_gripper.tolist()
         right_gripper = np.array(right_gripper)
 
-        now_left_id, now_right_id = 0, 0
+        now_right_id = 0
 
         # ========== Control Loop ==========
-        while now_left_id < left_n_step or now_right_id < right_n_step:
+        while now_right_id < right_n_step:
 
-            if (now_left_id < left_n_step and now_left_id / left_n_step <= now_right_id / right_n_step):
-                if topp_left_flag:
-                    self.robot.set_arm_joints(
-                        left_result["position"][now_left_id],
-                        left_result["velocity"][now_left_id],
-                        "left",
-                    )
-                self.robot.set_gripper(left_gripper[now_left_id], "left")
 
-                now_left_id += 1
 
-            if (now_right_id < right_n_step and now_right_id / right_n_step <= now_left_id / left_n_step):
+            if (now_right_id < right_n_step):
                 if topp_right_flag:
                     self.robot.set_arm_joints(
                         right_result["position"][now_right_id],

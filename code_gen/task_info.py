@@ -65,6 +65,11 @@ FIND_THE_PLATE = {
             "modelname": "107_soap",
         },
     },
+    "states": [
+        "remove the mug",
+        "remove the soap",
+        "plate is cleared"
+    ]
 }
 FIND_THE_HIDDEN_APPLE = {
     "task_name": "place_the_apple_into_the_plate",                # Name of the task
@@ -93,6 +98,11 @@ FIND_THE_HIDDEN_APPLE = {
             "modelname": "092_notebook"
         }
     },
+    "states": [
+        "remove the notebook",
+        "apple expose to the air",
+        "place the apple into the plate (not in the scene)"
+    ]
 }
 BEAT_BLOCK_HAMMER = {
     "task_name": "beat_block_hammer",
@@ -119,6 +129,11 @@ BEAT_BLOCK_HAMMER = {
             "modelname": "sapien-block1",
         }
     },
+    "states": [
+        "pick up the hammer",
+        "place the hammer on the block's functional point",
+        "beat the block once"
+    ]
 }
 
 PICK_DUAL_BOTTLES_EASY = {

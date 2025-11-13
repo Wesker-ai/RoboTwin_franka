@@ -641,16 +641,16 @@ class Robot:
         self._entity_qf(self.right_entity)
         gripper_val = np.clip(gripper_val, 0, 1)
 
-        if arm_tag == "left":
-            joints = self.left_gripper
-            self.left_gripper_val = gripper_val
-            gripper_scale = self.left_gripper_scale
-            real_gripper_val = self.get_normal_real_gripper_val()[0]
-        else:
-            joints = self.right_gripper
-            self.right_gripper_val = gripper_val
-            gripper_scale = self.right_gripper_scale
-            real_gripper_val = self.get_normal_real_gripper_val()[1]
+        # if arm_tag == "left":
+        #     joints = self.left_gripper
+        #     self.left_gripper_val = gripper_val
+        #     gripper_scale = self.left_gripper_scale
+        #     real_gripper_val = self.get_normal_real_gripper_val()[0]
+        # else:
+        joints = self.right_gripper
+        self.right_gripper_val = gripper_val
+        gripper_scale = self.right_gripper_scale
+        real_gripper_val = self.get_normal_real_gripper_val()[1]
 
         if not joints:
             print("No gripper")

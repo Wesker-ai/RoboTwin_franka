@@ -107,8 +107,6 @@ class get_apple(Base_Task):
         self.add_prohibit_area(self.apple, padding=0.1)
 
     def play_once(self):
-        # Capture initial scene state
-        self.save_camera_images(task_name="get_apple", step_name="step1_initial_scene", generate_num_id="generate_num_1")
         
         # First, remove the brush that's hiding the apple
         # brush_pose = self.brush.get_pose()

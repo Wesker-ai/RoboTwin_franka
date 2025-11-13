@@ -29,11 +29,16 @@ from sim_env import BOX_POSE
 
 import IPython
 
+import time
+
 e = IPython.embed
 
 
 def main(args):
-    set_seed(1)
+    current_time = time.strftime("%Y%m%d-%H%M%S")
+    print(f"Current time: {current_time}")
+
+    set_seed(42)
     # command line parameters
     is_eval = args["eval"]
     ckpt_dir = args["ckpt_dir"]
@@ -60,7 +65,7 @@ def main(args):
     camera_names = task_config["camera_names"]
 
     # fixed parameters
-    state_dim = 14  # yiheng
+    state_dim = 16  # Franka-panda state dimension
     lr_backbone = 1e-5
     backbone = "resnet18"
     if policy_class == "ACT":
@@ -79,6 +84,7 @@ def main(args):
             "dec_layers": dec_layers,
             "nheads": nheads,
             "camera_names": camera_names,
+            "state_dim": state_dim,
         }
     elif policy_class == "CNNMLP":
         policy_config = {
@@ -136,6 +142,9 @@ def main(args):
     ckpt_path = os.path.join(ckpt_dir, f"policy_best.ckpt")
     torch.save(best_state_dict, ckpt_path)
     print(f"Best ckpt, val loss {min_val_loss:.6f} @ epoch{best_epoch}")
+    end_time = time.strftime("%Y%m%d-%H%M%S")
+    print(f"End time: {end_time}")
+    print(f"Time Cost: {time.mktime(time.strptime(end_time, '%Y%m%d-%H%M%S')) - time.mktime(time.strptime(current_time, '%Y%m%d-%H%M%S'))}")
 
 
 def make_policy(policy_class, policy_config):

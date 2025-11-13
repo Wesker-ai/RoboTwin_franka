@@ -125,12 +125,12 @@ class blocks_ranking_rgb(Base_Task):
 
     def pick_and_place_block(self, block, target_pose=None):
         block_pose = block.get_pose().p
-        arm_tag = ArmTag("left" if block_pose[0] < 0 else "right")
+        arm_tag = ArmTag("right")
 
         if self.last_gripper is not None and (self.last_gripper != arm_tag):
             self.move(
                 self.grasp_actor(block, arm_tag=arm_tag, pre_grasp_dis=0.09, grasp_dis=0.01),  # arm_tag
-                self.back_to_origin(arm_tag=arm_tag.opposite),  # arm_tag.opposite
+                # self.back_to_origin(arm_tag=arm_tag.opposite),  # arm_tag.opposite
             )
         else:
             self.move(self.grasp_actor(block, arm_tag=arm_tag, pre_grasp_dis=0.09))  # arm_tag
@@ -161,4 +161,4 @@ class blocks_ranking_rgb(Base_Task):
 
         return (np.all(abs(block1_pose[:2] - block2_pose[:2]) < eps)
                 and np.all(abs(block2_pose[:2] - block3_pose[:2]) < eps) and block1_pose[0] < block2_pose[0]
-                and block2_pose[0] < block3_pose[0] and self.is_left_gripper_open() and self.is_right_gripper_open())
+                and block2_pose[0] < block3_pose[0])
